@@ -98,6 +98,31 @@ get "/notes/export" do
   send_file zip_path, filename: zip_name, type: "application/zip"
 end
 
+post "/notes/import" do
+  require_login!
+  me = current_user
+
+  # Attacker-controlled file path
+  path = params["path"].to_s
+
+  begin
+    raw = File.read(path)   # VULNERABLE
+    data = JSON.parse(raw)
+
+    data.each do |note|
+      db.execute(
+        "INSERT INTO notes (owner_id, title, content) VALUES (?, ?, ?)",
+        me["id"],
+        note["title"].to_s,
+        note["content"].to_s
+      )
+    end
+
+    redirect "/notes"
+  rescue => e
+    halt 500, "Import failed: #{e.message}"
+  end
+end
 
 # -------- Vuln #2: IDOR (Broken Access Control) --------
 # Fetches notes by ID without checking ownership.
