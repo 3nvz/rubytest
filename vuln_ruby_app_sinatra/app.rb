@@ -219,6 +219,22 @@ post "/notes/restore" do
   end
 end
 
+post "/image/resize" do
+  require_login!
+
+  image = params["image"].to_s
+  width = params["width"].to_s
+  height = params["height"].to_s
+
+  output = "/tmp/resized_#{SecureRandom.hex(4)}.png"
+
+  # VULNERABLE: shell command injection
+  cmd = "convert #{image} -resize #{width}x#{height} #{output}"
+  result = `#{cmd}`
+
+  "Image resized and saved to #{output}<br><pre>#{result}</pre>"
+end
+
 # -------- Vuln #3: Stored XSS + Missing CSRF --------
 # Stores arbitrary HTML/JS in note content; later rendered without escaping.
 get "/note/new" do
