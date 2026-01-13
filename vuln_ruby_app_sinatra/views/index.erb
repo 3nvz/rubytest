@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Vuln Ruby App</title></head>
+  <body>
+    <h1>Vuln Ruby App (Sinatra)</h1>
+
+    <% if @me %>
+      <p>Logged in as <b><%= @me["username"] %></b></p>
+
+      <form method="post" action="/logout">
+        <button type="submit">Logout</button>
+      </form>
+
+      <p><a href="/notes">Your notes</a> | <a href="/note/new">New note</a> | <a href="/search">Search</a></p>
+    <% else %>
+      <p><a href="/login">Login</a> | <a href="/search">Search</a></p>
+      <p>Try logging in with: <code>alice/password123</code> or <code>bob/letmein</code></p>
+    <% end %>
+
+    <hr>
+    <p><small>For local training only. Do not deploy.</small></p>
+  </body>
+</html>

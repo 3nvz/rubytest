@@ -1,0 +1,12 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Note</title></head>
+  <body>
+    <h2><%= @note["title"] %></h2>
+
+    <!-- VULNERABLE: stored XSS (content rendered without escaping) -->
+    <div><%= @note["content"] %></div>
+
+    <p><a href="/notes">Back</a></p>
+  </body>
+</html>

@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Search</title></head>
+  <body>
+    <h2>Search</h2>
+    <form method="get" action="/search">
+      <input name="q" placeholder="search..." value="<%= @q %>">
+      <button type="submit">Go</button>
+    </form>
+
+    <% if @q && @q.length > 0 %>
+      <h3>Results for:</h3>
+      <!-- VULNERABLE: reflected XSS -->
+      <div><%= @q %></div>
+      <p><small>(There is no real search backend; this just echoes your input.)</small></p>
+    <% end %>
+
+    <p><a href="/">Home</a></p>
+  </body>
+</html>

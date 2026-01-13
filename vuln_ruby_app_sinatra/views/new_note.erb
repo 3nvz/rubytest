@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>New note</title></head>
+  <body>
+    <h2>New Note</h2>
+
+    <!-- VULNERABLE: missing CSRF -->
+    <form method="post" action="/note">
+      <label>Title: <input name="title"></label><br>
+      <label>Content:</label><br>
+      <textarea name="content" rows="6" cols="60"></textarea><br>
+      <button type="submit">Create</button>
+    </form>
+
+    <p><a href="/notes">Back</a></p>
+  </body>
+</html>

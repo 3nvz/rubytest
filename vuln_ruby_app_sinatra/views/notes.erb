@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8"><title>Notes</title></head>
+  <body>
+    <h2>Notes for <%= @me["username"] %></h2>
+
+    <p><a href="/note/new">New note</a> | <a href="/">Home</a></p>
+
+    <ul>
+      <% @notes.each do |n| %>
+        <li><a href="/note/<%= n["id"] %>"><%= n["title"] %></a></li>
+      <% end %>
+    </ul>
+
+    <hr>
+    <p><small>Try IDOR: manually visit /note/1..4 while logged in as either user.</small></p>
+  </body>
+</html>

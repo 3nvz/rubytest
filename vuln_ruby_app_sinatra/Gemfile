@@ -1,0 +1,5 @@
+source "https://rubygems.org"
+
+gem "sinatra", "~> 3.2"
+gem "sqlite3", "~> 1.7"
+gem "rackup", "~> 2.1"
