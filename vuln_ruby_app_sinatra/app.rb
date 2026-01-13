@@ -143,6 +143,21 @@ get "/admin/logs" do
   erb :logs
 end
 
+get "/template/preview" do
+  require_login!
+
+  template = params["tpl"].to_s
+
+  begin
+    # VULNERABLE: user input rendered as ERB
+    @output = ERB.new(template).result(binding)
+  rescue => e
+    @output = "Template error: #{e.message}"
+  end
+
+  erb :template_preview
+end
+
 # -------- Vuln #2: IDOR (Broken Access Control) --------
 # Fetches notes by ID without checking ownership.
 get "/note/:id" do
