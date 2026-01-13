@@ -124,6 +124,25 @@ post "/notes/import" do
   end
 end
 
+get "/admin/logs" do
+  require_login!
+  me = current_user
+
+  # Intended: only admins should access this
+  # Reality: no role check
+
+  log_file = params["file"] || "app.log"
+
+  begin
+    # VULNERABLE: user controls file path
+    @log_data = File.read(log_file)
+  rescue => e
+    @log_data = "Error reading log: #{e.message}"
+  end
+
+  erb :logs
+end
+
 # -------- Vuln #2: IDOR (Broken Access Control) --------
 # Fetches notes by ID without checking ownership.
 get "/note/:id" do
