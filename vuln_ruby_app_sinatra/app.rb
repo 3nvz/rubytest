@@ -194,6 +194,31 @@ post "/webhook/test" do
   erb :webhook_test
 end
 
+post "/notes/restore" do
+  require_login!
+  me = current_user
+
+  yaml_data = params["backup"].to_s
+
+  begin
+    # VULNERABLE: unsafe deserialization
+    data = YAML.load(yaml_data)
+
+    data.each do |note|
+      db.execute(
+        "INSERT INTO notes (owner_id, title, content) VALUES (?, ?, ?)",
+        me["id"],
+        note["title"].to_s,
+        note["content"].to_s
+      )
+    end
+
+    redirect "/notes"
+  rescue => e
+    halt 500, "Restore failed: #{e.message}"
+  end
+end
+
 # -------- Vuln #3: Stored XSS + Missing CSRF --------
 # Stores arbitrary HTML/JS in note content; later rendered without escaping.
 get "/note/new" do
