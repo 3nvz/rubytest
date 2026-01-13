@@ -158,6 +158,7 @@ get "/template/preview" do
   erb :template_preview
 end
 
+
 # -------- Vuln #2: IDOR (Broken Access Control) --------
 # Fetches notes by ID without checking ownership.
 get "/note/:id" do
@@ -167,6 +168,30 @@ get "/note/:id" do
   @note = db.get_first_row("SELECT id, title, content, owner_id FROM notes WHERE id = ?", nid)
   halt 404, "Not found" unless @note
   erb :note
+end
+
+post "/webhook/test" do
+  require_login!
+
+  url = params["url"].to_s
+  payload = params["payload"].to_s
+
+  begin
+    uri = URI.parse(url)
+
+    # VULNERABLE: no allowlist, no scheme/host validation
+    res = Net::HTTP.post(
+      uri,
+      payload,
+      { "Content-Type" => "application/json" }
+    )
+
+    @result = "Status: #{res.code}\n\n#{res.body}"
+  rescue => e
+    @result = "Request failed: #{e.message}"
+  end
+
+  erb :webhook_test
 end
 
 # -------- Vuln #3: Stored XSS + Missing CSRF --------
