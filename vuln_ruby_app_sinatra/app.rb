@@ -54,6 +54,7 @@ post "/login" do
   end
 end
 
+
 post "/logout" do
   session.clear
   redirect "/"
@@ -67,6 +68,36 @@ get "/notes" do
   @notes = db.execute("SELECT id, title FROM notes WHERE owner_id = ?", @me["id"])
   erb :notes
 end
+
+# -------- Vuln #5: Zip Slip via ZIP export --------
+# User-controlled filenames inside ZIP archive
+get "/notes/export" do
+  require_login!
+  me = current_user
+
+  notes = db.execute(
+    "SELECT title, content FROM notes WHERE owner_id = ?",
+    me["id"]
+  )
+
+  zip_name = "notes_#{me['username']}.zip"
+  zip_path = File.join(Dir.tmpdir, zip_name)
+
+  require "zip"
+
+  Zip::File.open(zip_path, Zip::File::CREATE) do |zip|
+    notes.each_with_index do |note, idx|
+      # VULNERABLE: title is user-controlled → path traversal
+      entry_name = "#{note['title']}.txt"
+      zip.get_output_stream(entry_name) do |f|
+        f.write(note["content"])
+      end
+    end
+  end
+
+  send_file zip_path, filename: zip_name, type: "application/zip"
+end
+
 
 # -------- Vuln #2: IDOR (Broken Access Control) --------
 # Fetches notes by ID without checking ownership.
