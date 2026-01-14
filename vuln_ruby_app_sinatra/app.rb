@@ -590,3 +590,26 @@ post "/account/api_token/scope" do
   update_token_scope(me["id"], params["scope"].to_s)
   redirect "/profile"
 end
+
+def disconnect_oauth(user_id, provider)
+  remove_oauth_link(user_id, provider)
+end
+
+def remove_oauth_link(user_id, provider)
+  # VULNERABLE:
+  # - removes linkage
+  # - does NOT revoke issued OAuth tokens
+  db.execute(
+    "DELETE FROM oauth_tokens WHERE user_id = ? AND provider = ?",
+    user_id,
+    provider
+  )
+end
+
+post "/account/oauth/:provider/disconnect" do
+  require_login!
+  me = current_user
+
+  disconnect_oauth(me["id"], params["provider"])
+  redirect "/profile"
+end
