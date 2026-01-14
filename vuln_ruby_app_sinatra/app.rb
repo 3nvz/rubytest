@@ -482,3 +482,31 @@ post "/login" do
     erb :login
   end
 end
+
+
+def generate_api_key
+  SecureRandom.hex(24)
+end
+
+def rotate_api_key(user_id)
+  new_key = generate_api_key
+
+  # VULNERABLE:
+  # - overwrites key
+  # - does NOT track or revoke old keys
+  db.execute(
+    "UPDATE users SET api_key = ? WHERE id = ?",
+    new_key,
+    user_id
+  )
+
+  new_key
+end
+
+post "/account/api_key/regenerate" do
+  require_login!
+  me = current_user
+
+  @new_key = rotate_api_key(me["id"])
+  erb :api_key
+end
