@@ -465,3 +465,20 @@ post "/account/email" do
 
   redirect "/profile"
 end
+
+post "/login" do
+  u = params["username"].to_s
+  p = params["password"].to_s
+
+  sql = "SELECT id, username FROM users WHERE username='#{u}' AND password='#{p}'"
+  user = db.get_first_row(sql)
+
+  if user
+    session[:user_id] = user["id"]
+
+    redirect "/"
+  else
+    @error = "Invalid credentials"
+    erb :login
+  end
+end
