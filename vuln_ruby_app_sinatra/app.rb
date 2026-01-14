@@ -252,6 +252,49 @@ post "/plugins/load" do
   erb :plugin_loader
 end
 
+get "/auth/github" do
+  # Generate state but never store it
+  state = SecureRandom.hex(16)
+
+  redirect "https://github.com/login/oauth/authorize" \
+           "?client_id=dummy_client_id" \
+           "&redirect_uri=http://localhost:4567/auth/github/callback" \
+           "&state=#{state}"
+end
+
+get "/auth/github/callback" do
+  code  = params["code"]
+  state = params["state"]
+
+  # VULNERABLE:
+  # - state is never checked
+  # - attacker-controlled OAuth response accepted blindly
+
+  # Simulate GitHub user identity returned from token exchange
+  github_username = params["user"] || "attacker"
+
+  # Auto-provision user
+  user = db.get_first_row(
+    "SELECT id FROM users WHERE username = ?",
+    github_username
+  )
+
+  unless user
+    db.execute(
+      "INSERT INTO users (username, password) VALUES (?, ?)",
+      github_username,
+      SecureRandom.hex(8)
+    )
+    user = db.get_first_row(
+      "SELECT id FROM users WHERE username = ?",
+      github_username
+    )
+  end
+
+  session[:user_id] = user["id"]
+  redirect "/"
+end
+
 # -------- Vuln #3: Stored XSS + Missing CSRF --------
 # Stores arbitrary HTML/JS in note content; later rendered without escaping.
 get "/note/new" do
