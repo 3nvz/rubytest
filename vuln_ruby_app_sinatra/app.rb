@@ -549,3 +549,19 @@ post "/account/password/change" do
   change_password(me["id"], params["password"].to_s)
   redirect "/profile"
 end
+
+def logout_user(user_id)
+  clear_session
+end
+
+def clear_session
+  session.clear
+end
+
+post "/logout" do
+  require_login!
+  me = current_user
+
+  logout_user(me["id"])
+  redirect "/"
+end
