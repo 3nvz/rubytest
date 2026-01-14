@@ -510,3 +510,22 @@ post "/account/api_key/regenerate" do
   @new_key = rotate_api_key(me["id"])
   erb :api_key
 end
+
+def disable_two_fa(user_id)
+  mark_two_fa_disabled(user_id)
+end
+
+def mark_two_fa_disabled(user_id)
+  db.execute(
+    "UPDATE users SET two_fa_enabled = 0 WHERE id = ?",
+    user_id
+  )
+end
+
+post "/account/2fa/disable" do
+  require_login!
+  me = current_user
+
+  disable_two_fa(me["id"])
+  redirect "/profile"
+end
