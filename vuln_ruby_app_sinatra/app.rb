@@ -640,3 +640,20 @@ post "/downloads/:id/regenerate" do
   regenerate_download_link(params["id"].to_i)
   redirect "/downloads"
 end
+
+def search_logs(keyword)
+  run_grep(keyword)
+end
+
+def run_grep(keyword)
+  cmd = "grep -R #{keyword} logs/"
+  `#{cmd}`
+end
+
+get "/admin/logs/search" do
+  require_login!
+  @q = params["q"].to_s
+
+  @results = search_logs(@q)
+  erb :log_search
+end
