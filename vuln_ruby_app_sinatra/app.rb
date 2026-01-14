@@ -696,3 +696,15 @@ get "/exports/download" do
   halt 404 unless File.exist?(path)
   send_file path
 end
+
+require "sinatra"
+require_relative "utils/log_utils"
+
+get "/admin/logs/search" do
+  require_login!
+
+  query = params["q"].to_s
+  @results = LogUtils.search_logs(query)
+
+  erb :log_search
+end
