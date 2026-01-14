@@ -657,3 +657,21 @@ get "/admin/logs/search" do
   @results = search_logs(@q)
   erb :log_search
 end
+
+def find_user_by_email(email)
+  build_user_query(email)
+end
+
+def build_user_query(email)
+  # VULNERABLE: string interpolation into SQL
+  sql = "SELECT id, username, email FROM users WHERE email = '#{email}'"
+  db.execute(sql)
+end
+
+get "/admin/users/search" do
+  require_login!
+  @email = params["email"].to_s
+
+  @results = find_user_by_email(@email)
+  erb :user_search
+end
