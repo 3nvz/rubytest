@@ -529,3 +529,23 @@ post "/account/2fa/disable" do
   disable_two_fa(me["id"])
   redirect "/profile"
 end
+
+def change_password(user_id, new_password)
+  update_user_password(user_id, new_password)
+end
+
+def update_user_password(user_id, new_password)
+  db.execute(
+    "UPDATE users SET password = ? WHERE id = ?",
+    new_password,
+    user_id
+  )
+end
+
+post "/account/password/change" do
+  require_login!
+  me = current_user
+
+  change_password(me["id"], params["password"].to_s)
+  redirect "/profile"
+end
