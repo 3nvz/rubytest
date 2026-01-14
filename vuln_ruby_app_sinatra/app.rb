@@ -393,3 +393,50 @@ post "/profile" do
 
   redirect "/profile"
 end
+
+get "/invite/accept/:token" do
+  require_login!
+  token = params["token"]
+
+  invite = db.get_first_row(
+    "SELECT * FROM invites WHERE token = ?",
+    token
+  )
+
+  halt 404, "Invalid invite" unless invite
+  halt 400, "Invite already used" if invite["used"] == 1
+
+  erb :invite_accept
+end
+
+post "/invite/accept/:token" do
+  require_login!
+  token = params["token"]
+  me = current_user
+
+  invite = db.get_first_row(
+    "SELECT * FROM invites WHERE token = ?",
+    token
+  )
+
+  halt 404, "Invalid invite" unless invite
+  halt 400, "Invite already used" if invite["used"] == 1
+
+  # VULNERABLE:
+  # - no transaction
+  # - no locking
+  # - race window here
+
+  db.execute(
+    "UPDATE users SET role = ? WHERE id = ?",
+    invite["role"],
+    me["id"]
+  )
+
+  db.execute(
+    "UPDATE invites SET used = 1 WHERE id = ?",
+    invite["id"]
+  )
+
+  redirect "/"
+end
