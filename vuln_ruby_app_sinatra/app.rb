@@ -370,3 +370,26 @@ get "/search" do
   @q = params["q"].to_s
   erb :search
 end
+
+get "/profile" do
+  require_login!
+  @me = current_user
+  erb :profile
+end
+
+post "/profile" do
+  require_login!
+  me = current_user
+
+  # VULNERABLE: blindly updating all params
+  params.each do |k, v|
+    next if k == "captures" || k == "splat"
+    db.execute(
+      "UPDATE users SET #{k} = ? WHERE id = ?",
+      v.to_s,
+      me["id"]
+    )
+  end
+
+  redirect "/profile"
+end
