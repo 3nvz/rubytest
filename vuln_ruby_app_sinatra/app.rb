@@ -4,6 +4,8 @@
 require "sinatra"
 require "sqlite3"
 require "securerandom"
+require "sinatra"
+require_relative "utils/http_utils"
 
 set :bind, "0.0.0.0"
 set :port, 4567
@@ -707,4 +709,13 @@ get "/admin/logs/search" do
   @results = LogUtils.search_logs(query)
 
   erb :log_search
+end
+
+get "/fetch" do
+  require_login!
+
+  target = params["url"].to_s
+  @response = HttpUtils.fetch_url(target)
+
+  erb :fetch
 end
