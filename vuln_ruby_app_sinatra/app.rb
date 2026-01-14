@@ -675,3 +675,24 @@ get "/admin/users/search" do
   @results = find_user_by_email(@email)
   erb :user_search
 end
+
+EXPORT_DIR = "./exports"
+
+def get_export_path(filename)
+  build_export_path(filename)
+end
+
+def build_export_path(filename)
+  # VULNERABLE: no path normalization or allowlist
+  File.join(EXPORT_DIR, filename)
+end
+
+get "/exports/download" do
+  require_login!
+  file = params["file"].to_s
+
+  path = get_export_path(file)
+
+  halt 404 unless File.exist?(path)
+  send_file path
+end
