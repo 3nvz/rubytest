@@ -565,3 +565,28 @@ post "/logout" do
   logout_user(me["id"])
   redirect "/"
 end
+
+
+def update_token_scope(user_id, new_scope)
+  persist_scope_change(user_id, new_scope)
+end
+
+def persist_scope_change(user_id, new_scope)
+  # VULNERABLE:
+  # - updates declared scope
+  # - does NOT invalidate cached / derived permissions
+  db.execute(
+    "UPDATE users SET token_scope = ? WHERE id = ?",
+    new_scope,
+    user_id
+  )
+end
+
+post "/account/api_token/scope" do
+  require_login!
+  me = current_user
+
+  # scope is chosen by UI, but exploit does NOT depend on input control
+  update_token_scope(me["id"], params["scope"].to_s)
+  redirect "/profile"
+end
