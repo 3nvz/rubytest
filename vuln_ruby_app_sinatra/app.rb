@@ -613,3 +613,30 @@ post "/account/oauth/:provider/disconnect" do
   disconnect_oauth(me["id"], params["provider"])
   redirect "/profile"
 end
+
+def regenerate_download_link(download_id)
+  new_sig = generate_signature
+  store_new_signature(download_id, new_sig)
+  new_sig
+end
+
+def generate_signature
+  SecureRandom.hex(16)
+end
+
+def store_new_signature(download_id, signature)
+  # VULNERABLE:
+  # - stores new signature
+  # - does NOT invalidate or track old signatures
+  db.execute(
+    "UPDATE downloads SET signature = ? WHERE id = ?",
+    signature,
+    download_id
+  )
+end
+
+post "/downloads/:id/regenerate" do
+  require_login!
+  regenerate_download_link(params["id"].to_i)
+  redirect "/downloads"
+end
