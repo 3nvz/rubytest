@@ -440,3 +440,28 @@ post "/invite/accept/:token" do
 
   redirect "/"
 end
+
+get "/account/email" do
+  require_login!
+  @me = current_user
+  erb :change_email
+end
+
+post "/account/email" do
+  require_login!
+  me = current_user
+
+  new_email = params["email"].to_s
+
+  # VULNERABLE:
+  # - no password check
+  # - no confirmation
+  # - immediate account mutation
+  db.execute(
+    "UPDATE users SET email = ? WHERE id = ?",
+    new_email,
+    me["id"]
+  )
+
+  redirect "/profile"
+end
