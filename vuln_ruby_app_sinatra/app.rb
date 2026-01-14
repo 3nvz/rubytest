@@ -235,6 +235,23 @@ post "/image/resize" do
   "Image resized and saved to #{output}<br><pre>#{result}</pre>"
 end
 
+post "/plugins/load" do
+  require_login!
+
+  plugin = params["plugin"].to_s
+
+  begin
+    # VULNERABLE: user-controlled require
+    require plugin
+
+    @status = "Plugin loaded: #{plugin}"
+  rescue => e
+    @status = "Failed to load plugin: #{e.message}"
+  end
+
+  erb :plugin_loader
+end
+
 # -------- Vuln #3: Stored XSS + Missing CSRF --------
 # Stores arbitrary HTML/JS in note content; later rendered without escaping.
 get "/note/new" do
