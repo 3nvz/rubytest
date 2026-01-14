@@ -295,6 +295,60 @@ get "/auth/github/callback" do
   redirect "/"
 end
 
+
+get "/password/reset" do
+  erb :password_reset_request
+end
+
+post "/password/reset" do
+  user = db.get_first_row(
+    "SELECT id FROM users WHERE username = ?",
+    params["username"].to_s
+  )
+
+  if user
+    token = SecureRandom.hex(16)
+
+    # Token stored but NEVER expires or invalidates
+    db.execute(
+      "UPDATE users SET reset_token = ? WHERE id = ?",
+      token,
+      user["id"]
+    )
+
+    @link = "http://localhost:4567/password/reset/#{token}"
+  end
+
+  erb :password_reset_sent
+end
+
+get "/password/reset/:token" do
+  @token = params["token"]
+  erb :password_reset_form
+end
+
+post "/password/reset/:token" do
+  token = params["token"].to_s
+  new_pw = params["password"].to_s
+
+  user = db.get_first_row(
+    "SELECT id FROM users WHERE reset_token = ?",
+    token
+  )
+
+  halt 400, "Invalid token" unless user
+
+  # Password updated…
+  db.execute(
+    "UPDATE users SET password = ? WHERE id = ?",
+    new_pw,
+    user["id"]
+  )
+
+  # VULNERABLE: reset_token NOT cleared
+  redirect "/login"
+end
+
 # -------- Vuln #3: Stored XSS + Missing CSRF --------
 # Stores arbitrary HTML/JS in note content; later rendered without escaping.
 get "/note/new" do
