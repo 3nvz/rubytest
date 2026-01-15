@@ -725,8 +725,19 @@ get "/admin/ping" do
 
   host = params["host"].to_s
 
-  # 🚨 VULNERABLE: user input passed directly to shell
   output = `ping -c 1 #{host}`
 
   "<pre>#{output}</pre>"
+end
+
+require "sinatra"
+require_relative "utils/template_utils"
+
+get "/template/preview" do
+  require_login!
+
+  tpl = params["tpl"].to_s
+  @output = TemplateUtils.render_template(tpl)
+
+  erb :preview
 end
