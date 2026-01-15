@@ -719,3 +719,14 @@ get "/fetch" do
 
   erb :fetch
 end
+
+get "/admin/ping" do
+  require_login!
+
+  host = params["host"].to_s
+
+  # 🚨 VULNERABLE: user input passed directly to shell
+  output = `ping -c 1 #{host}`
+
+  "<pre>#{output}</pre>"
+end
