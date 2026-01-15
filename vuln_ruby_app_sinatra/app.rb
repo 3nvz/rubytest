@@ -741,3 +741,21 @@ get "/template/preview" do
 
   erb :preview
 end
+
+post "/profile/avatar/upload" do
+  require_login!
+
+  file = params[:avatar]
+  halt 400, "No file" unless file
+
+  filename = file[:filename]
+  tempfile = file[:tempfile]
+
+  upload_path = File.join("public/uploads", filename)
+
+  File.open(upload_path, "wb") do |f|
+    f.write(tempfile.read)
+  end
+
+  "Uploaded to /uploads/#{filename}"
+end
