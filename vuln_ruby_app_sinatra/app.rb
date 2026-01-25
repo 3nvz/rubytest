@@ -774,3 +774,16 @@ get "/backup/download" do
 
   send_file path
 end
+
+get "/backup/download" do
+  require_login!
+
+  filename = params["file"].to_s
+
+  base_dir = "./backups"
+  path = File.join(base_dir, filename)
+
+  halt 404 unless File.exist?(path)
+
+  send_file path
+end
